@@ -1,18 +1,7 @@
 defmodule Tick do
-  @moduledoc """
-  Documentation for Tick.
-  """
 
-  @doc """
-  Hello world.
 
-  ## Examples
+  def set_configure(name, servers) do
 
-      iex> Tick.hello()
-      :world
-
-  """
-  def hello do
-    :world
   end
 end
