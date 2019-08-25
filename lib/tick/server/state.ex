@@ -3,7 +3,8 @@
 defmodule Tick.Server.State do
   defstruct [
     current_state: %{},
-    name: nil
+    name: nil,
+    config: %Tick.Config{}
   ]
 
   def new(current_state, name) do

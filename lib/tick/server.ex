@@ -4,9 +4,10 @@ defmodule Tick.Server do
   use GenServer
   require Logger
 
-  def send_msg() do
-    config = GenServer.call(__MODULE__, :current_state).config
-    spawn_task(__MODULE__, :received_state, :moebi@localhost, [message, Node.self()])
+  def send_state(state) do
+    GenServer.call(__MODULE__, :current_state).config
+      |> dest_address
+      |> Enum.each(fn(address) -> spawn_task(__MODULE__, :received_state, address, [state, Node.self()]) end)
   end
 
   def receive_state(%Tick.Server.State{}=received_state, from) do
