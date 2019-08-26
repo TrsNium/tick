@@ -4,27 +4,22 @@ defmodule Tick.StateMachine do
     caller = __CALLER__.module
     quote location: :keep do
       def child_spec(%Tick.Config{}=config) do
-        #TODO: generate config for `server.ex`
+        init_opts = %Tick.Server.State{}
+          |> Map.put(:current_state, Tick.Server.State.init_current_state(config))
+          |> Map.put(:config, config)
+
+        Supervisor.child_spec({Tick.PeerSupervisor, init_opts}, name: Tick.PeerSupervisor)
       end
 
       defmacrop tick(do: block) do
         quote do
+          #TODO:
           # Wait if no message arrives.
           unquote(block)
           # Send a message to each node
         end
       end
 
-    end
-  end
-end
-
-defmodule Test do
-  use Tick.StateMachine
-
-  def test1 do
-    tick do
-      IO.puts "test1"
     end
   end
 end

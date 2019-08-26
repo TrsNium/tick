@@ -26,13 +26,13 @@ defmodule Tick.Server do
     Logger.info("Number of steps that other nodes are proceeding with: #{number_of_steps_forward state.current_state, received_state.current_state}")
 
     other_names = Map.keys(state.current_state)
-                    |> List.delete(state.name)
+                    |> List.delete(state.config.self_name)
 
-    state_incremented = %{ state.current_state | state.name => state.current_state[state.name] + 1 }
+    state_incremented = %{ state.current_state | state.config.self_name => state.current_state[state.config.self_name] + 1 }
     state_apply_received_state = Enum.reduce(other_names, state_incremented, fn(name, state) -> %{state | name => received_state[name]} end)
     Logger.info("Updated current state: #{inspect state_apply_received_state}")
 
-    GenServer.cast(__MODULE__, {:update_state, Tick.Server.State.new(state_apply_received_state, state.name, state.config)})
+    GenServer.cast(__MODULE__, {:update_state, Tick.Server.State.new(state_apply_received_state, state.config)})
   end
 
   defp number_of_steps_forward(self_state, received_state) do
@@ -45,7 +45,7 @@ defmodule Tick.Server do
     state = GenServer.call(__MODULE__, :current_state)
     updated_current_state = %{state.current_state | state.name => state.current_state[state.name] + 1}
     Logger.info("Updated current state: #{inspect updated_current_state}")
-    new_state = Tick.Server.State.new(updated_current_state, state.name, state.config)
+    new_state = Tick.Server.State.new(updated_current_state, state.config)
     GenServer.cast(:update_state, new_state)
   end
 
