@@ -1,6 +1,6 @@
 
 
-defmodule Tick.Supervisor do
+defmodule Tick.PeerSupervisor do
   use Supervisor
 
   def start_link(init_state) do

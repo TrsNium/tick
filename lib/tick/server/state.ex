@@ -7,9 +7,10 @@ defmodule Tick.Server.State do
     config: %Tick.Config{}
   ]
 
-  def new(current_state, name) do
+  def new(current_state, name, config) do
     %__MODULE__{}
-    |> Map.put(:current_state, current_state)
-    |> Map.put(:name, name)
+      |> Map.put(:current_state, current_state)
+      |> Map.put(:name, name)
+      |> Map.put(:config, config)
   end
 end

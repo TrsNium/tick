@@ -6,8 +6,17 @@ defmodule Tick.Server do
 
   def send_state(state) do
     GenServer.call(__MODULE__, :current_state).config
-      |> dest_address
-      |> Enum.each(fn(address) -> spawn_task(__MODULE__, :received_state, address, [state, Node.self()]) end)
+      |> Tick.Config.dest_address
+      |> Enum.each(fn(address) ->
+           address
+             |> remote_supervisor()
+             |> Task.Supervisor.async(__MODULE__, :receive_state, [state, Node.self()])
+             |> Task.await()
+         end)
+  end
+
+  defp remote_supervisor(address) do
+    {Chat.TaskSupervisor, address}
   end
 
   def receive_state(%Tick.Server.State{}=received_state, from) do
@@ -23,7 +32,7 @@ defmodule Tick.Server do
     state_apply_received_state = Enum.reduce(other_names, state_incremented, fn(name, state) -> %{state | name => received_state[name]} end)
     Logger.info("Updated current state: #{inspect state_apply_received_state}")
 
-    GenServer.cast(__MODULE__, {:update_state, Tick.Server.State.new(state_apply_received_state, state.name)})
+    GenServer.cast(__MODULE__, {:update_state, Tick.Server.State.new(state_apply_received_state, state.name, state.config)})
   end
 
   defp number_of_steps_forward(self_state, received_state) do
@@ -36,7 +45,7 @@ defmodule Tick.Server do
     state = GenServer.call(__MODULE__, :current_state)
     updated_current_state = %{state.current_state | state.name => state.current_state[state.name] + 1}
     Logger.info("Updated current state: #{inspect updated_current_state}")
-    new_state = Tick.Server.State.new(updated_current_state, state.name)
+    new_state = Tick.Server.State.new(updated_current_state, state.name, state.config)
     GenServer.cast(:update_state, new_state)
   end
 
@@ -47,10 +56,6 @@ defmodule Tick.Server do
 
   def handle_cast({:update_state, %Tick.Server.State{}=new_state}, _) do
     {:noreply, new_state}
-  end
-
-  def handle_cast({:finish_process, _}, state) do
-    current_state = state.
   end
 
   def start_link(state) do
