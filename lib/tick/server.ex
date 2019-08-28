@@ -30,7 +30,7 @@ defmodule Tick.Server do
                     |> List.delete(self_name)
 
     state_incremented = %{ state.current_state | self_name => state.current_state[self_name] + 1 }
-    state_apply_received_state = Enum.reduce(other_names, state_incremented, fn(name, state) -> %{state | name => received_state[name]} end)
+    state_apply_received_state = Enum.reduce(other_names, state_incremented, fn(name, state) -> %{state | name => received_state.current_state[name]} end)
     Logger.info("Updated current state: #{inspect state_apply_received_state}")
 
     GenServer.cast(__MODULE__, {:update_state, Tick.Server.State.new(state_apply_received_state, state.config)})
@@ -44,11 +44,11 @@ defmodule Tick.Server do
 
   def finish_process() do
     state = GenServer.call(__MODULE__, :current_state)
-    self_name= state.config.self_name
+    self_name = state.config.self_name
     updated_current_state = %{state.current_state | self_name => state.current_state[self_name] + 1}
     Logger.info("Updated current state: #{inspect updated_current_state}")
     new_state = Tick.Server.State.new(updated_current_state, state.config)
-    GenServer.cast(:update_state, new_state)
+    GenServer.cast(__MODULE__, {:update_state, new_state})
     send_state(new_state)
   end
 
