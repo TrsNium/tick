@@ -14,7 +14,7 @@ defmodule Tick.Config do
 
   def dest_address(%Tick.Config{}=config) do
     config.dest_info
-      |> Enum.filter(fn(dest_info)-> dest_info != nil end)
+      |> Enum.filter(fn(dest_info)-> dest_info.address != nil end)
       |> Enum.map(fn(dest_info)-> dest_info.address end)
   end
 end

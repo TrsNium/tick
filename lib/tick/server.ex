@@ -9,26 +9,28 @@ defmodule Tick.Server do
       |> Tick.Config.dest_address
       |> Enum.each(fn(address) ->
            address
-             |> remote_supervisor()
+             |> remote_supervisor
              |> Task.Supervisor.async(__MODULE__, :receive_state, [state, Node.self()])
              |> Task.await()
          end)
   end
 
   defp remote_supervisor(address) do
+    IO.puts "address is #{inspect address}"
     {Chat.TaskSupervisor, address}
   end
 
   def receive_state(%Tick.Server.State{}=received_state, from) do
     state = GenServer.call(__MODULE__, :current_state)
+    self_name = state.config.self_name
 
     Logger.info("Get state from node(#{inspect from}): #{inspect received_state.current_state}")
     Logger.info("Number of steps that other nodes are proceeding with: #{number_of_steps_forward state.current_state, received_state.current_state}")
 
     other_names = Map.keys(state.current_state)
-                    |> List.delete(state.config.self_name)
+                    |> List.delete(self_name)
 
-    state_incremented = %{ state.current_state | state.config.self_name => state.current_state[state.config.self_name] + 1 }
+    state_incremented = %{ state.current_state | self_name => state.current_state[self_name] + 1 }
     state_apply_received_state = Enum.reduce(other_names, state_incremented, fn(name, state) -> %{state | name => received_state[name]} end)
     Logger.info("Updated current state: #{inspect state_apply_received_state}")
 
@@ -43,10 +45,12 @@ defmodule Tick.Server do
 
   def finish_process() do
     state = GenServer.call(__MODULE__, :current_state)
-    updated_current_state = %{state.current_state | state.name => state.current_state[state.name] + 1}
+    self_name= state.config.self_name
+    updated_current_state = %{state.current_state | self_name => state.current_state[self_name] + 1}
     Logger.info("Updated current state: #{inspect updated_current_state}")
     new_state = Tick.Server.State.new(updated_current_state, state.config)
     GenServer.cast(:update_state, new_state)
+    send_state(new_state)
   end
 
   # Return current status

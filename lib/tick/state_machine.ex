@@ -1,7 +1,6 @@
 
 defmodule Tick.StateMachine do
   defmacro __using__(_opts) do
-    caller = __CALLER__.module
     quote location: :keep do
       def child_spec(%Tick.Config{}=config) do
         init_opts = %Tick.Server.State{}
@@ -13,10 +12,8 @@ defmodule Tick.StateMachine do
 
       defmacrop tick(do: block) do
         quote do
-          #TODO:
-          # Wait if no message arrives.
           unquote(block)
-          # Send a message to each node
+          Tick.Server.finish_process()
         end
       end
 
