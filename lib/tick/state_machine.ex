@@ -8,7 +8,7 @@ defmodule Tick.StateMachine do
           |> Map.put(:current_state, Tick.Server.State.init_current_state(config))
           |> Map.put(:config, config)
 
-        Supervisor.child_spec({Tick.PeerSupervisor, init_opts}, name: Tick.PeerSupervisor)
+        Supervisor.child_spec({Tick.PeerSupervisor, init_opts}, id: Tick.PeerSupervisor)
       end
 
       defmacrop tick(do: block) do
