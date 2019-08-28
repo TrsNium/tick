@@ -16,8 +16,7 @@ defmodule Tick.Server do
   end
 
   defp remote_supervisor(address) do
-    IO.puts "address is #{inspect address}"
-    {Chat.TaskSupervisor, address}
+    {Tick.TaskSupervisor, address}
   end
 
   def receive_state(%Tick.Server.State{}=received_state, from) do
