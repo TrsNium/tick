@@ -12,8 +12,9 @@ defmodule Tick.StateMachine do
 
       defmacrop tick(do: block) do
         quote do
-          unquote(block)
+          result = unquote(block)
           Tick.Server.finish_process()
+          result
         end
       end
 
