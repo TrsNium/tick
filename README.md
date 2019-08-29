@@ -1,6 +1,6 @@
 # Tick
 
-**TODO: Add description**
+Tick is a library 
 
 ## Installation
 
